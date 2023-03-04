@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Threading;
+using System.Globalization;
 
 public class Program {
 
@@ -32,6 +33,15 @@ public class Program {
     public static int Cooldown; // Since The Teams Notification Stutters, Add A Cooldown To Dismiss
 
     public static void Main(string[] args) {
+        string notificationTitle;
+        switch (CultureInfo.InstalledUICulture.ThreeLetterISOLanguageName) {
+            case "por":
+                notificationTitle = "Nova notificação";
+                break;
+            default:
+                notificationTitle = "New notification";
+                break;
+        }
 
         while (true) {
 
@@ -75,13 +85,13 @@ public class Program {
             }
 
             //Windows System Notifications
-            var hwnd = FindWindow("Windows.UI.Core.CoreWindow", "New notification");
+            var hwnd = FindWindow("Windows.UI.Core.CoreWindow", notificationTitle);
             if (System.AppDomain.CurrentDomain.FriendlyName == "topleft.exe"){
                 //Sets to top left (easy peasy)
                 //50PX Y offset to make the spacing even
                 SetWindowPos(hwnd, 0, 0, -50, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
             }
-            else if (System.AppDomain.CurrentDomain.FriendlyName == "topright.exe"){
+            else {
                 //Sets to top right (not as easy)
 
                 //Get the current position of the notification window
@@ -89,10 +99,18 @@ public class Program {
                 GetWindowRect(hwnd, ref NotifyRect);
                 
                 NotifyRect.Width = NotifyRect.Width - NotifyRect.X;
-			    NotifyRect.Height = NotifyRect.Height - NotifyRect.Y;
+                NotifyRect.Height = NotifyRect.Height - NotifyRect.Y;
+                NotifyRect.X = Screen.PrimaryScreen.Bounds.Width - NotifyRect.Width;
+                NotifyRect.Y = -50;
+
+                switch (System.AppDomain.CurrentDomain.FriendlyName){
+                    case "topmiddle.exe":
+                        NotifyRect.X /= 2;
+                        break;
+                }
 
                 //50PX Y offset to make the spacing even
-                SetWindowPos(hwnd, 0, Screen.PrimaryScreen.Bounds.Width - NotifyRect.Width, -50, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+                SetWindowPos(hwnd, 0, NotifyRect.X, NotifyRect.Y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
             }
 
             Thread.Sleep(10);
